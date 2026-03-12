@@ -1,9 +1,11 @@
 import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
 import type { StarData } from "@/pages/Index";
 
 interface StarSelectionScreenProps {
   onComplete: (stars: StarData[]) => void;
+  onBack: () => void;
 }
 
 const PROMPTS = [
@@ -24,24 +26,20 @@ const SUGGESTIONS = [
   "resilient", "friend", "kind", "dreamer", "curious",
 ];
 
-const ACCENT_COLORS = [
-  "fill-accent-pink",
-  "fill-accent-blue",
-  "fill-accent-lavender",
-  "fill-accent-mint",
-];
+const FIELD_SIZE = 300;
 
-const StarSelectionScreen = ({ onComplete }: StarSelectionScreenProps) => {
+const StarSelectionScreen = ({ onComplete, onBack }: StarSelectionScreenProps) => {
   const starPositions = useMemo(() => {
     const positions: { id: number; x: number; y: number }[] = [];
     const count = 10;
+    const center = FIELD_SIZE / 2;
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
-      const radius = 120 + Math.random() * 80;
+      const radius = FIELD_SIZE * 0.28 + Math.random() * (FIELD_SIZE * 0.18);
       positions.push({
         id: i,
-        x: 200 + Math.cos(angle) * radius,
-        y: 200 + Math.sin(angle) * radius,
+        x: center + Math.cos(angle) * radius,
+        y: center + Math.sin(angle) * radius,
       });
     }
     return positions;
@@ -82,20 +80,26 @@ const StarSelectionScreen = ({ onComplete }: StarSelectionScreenProps) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.6 }}
-      className="flex flex-col items-center w-full max-w-lg mx-auto px-4"
+      className="flex flex-col items-center w-full max-w-sm mx-auto px-3"
     >
-      <motion.p
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="font-reflection text-base text-foreground/80 mb-6 text-justified"
-      >
-        Tap stars to add parts of who you are.
-      </motion.p>
+      {/* Header with back button */}
+      <div className="w-full flex items-center mb-4">
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={onBack}
+          className="p-2 rounded-full hover:bg-muted/50 transition-colors text-foreground/70"
+        >
+          <ArrowLeft size={20} />
+        </motion.button>
+        <p className="flex-1 text-center font-reflection text-sm text-foreground/80 text-justified pr-9">
+          Tap stars to add parts of who you are.
+        </p>
+      </div>
 
-      {/* Star field */}
-      <div className="relative w-[400px] h-[400px] mx-auto">
-        <svg width="400" height="400" className="absolute inset-0">
-          {/* Constellation lines */}
+      {/* Star field - responsive */}
+      <div className="relative mx-auto" style={{ width: FIELD_SIZE, height: FIELD_SIZE }}>
+        <svg width={FIELD_SIZE} height={FIELD_SIZE} className="absolute inset-0">
           {labeledStars.length > 1 &&
             labeledStars.map((star, i) => {
               if (i === 0) return null;
@@ -103,10 +107,7 @@ const StarSelectionScreen = ({ onComplete }: StarSelectionScreenProps) => {
               return (
                 <motion.line
                   key={`line-${prev.id}-${star.id}`}
-                  x1={prev.x}
-                  y1={prev.y}
-                  x2={star.x}
-                  y2={star.y}
+                  x1={prev.x} y1={prev.y} x2={star.x} y2={star.y}
                   className="stroke-constellation"
                   strokeWidth="1.5"
                   opacity="0.6"
@@ -127,7 +128,7 @@ const StarSelectionScreen = ({ onComplete }: StarSelectionScreenProps) => {
             <motion.div
               key={star.id}
               className="absolute cursor-pointer"
-              style={{ left: star.x - 16, top: star.y - 16 }}
+              style={{ left: star.x - 14, top: star.y - 14 }}
               whileHover={{ scale: 1.3 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => handleStarTap(star.id)}
@@ -136,23 +137,20 @@ const StarSelectionScreen = ({ onComplete }: StarSelectionScreenProps) => {
                 animate={labeled ? { scale: [1, 1.2, 1] } : {}}
                 transition={{ duration: 0.5 }}
               >
-                <svg width="32" height="32" viewBox="0 0 32 32">
+                <svg width="28" height="28" viewBox="0 0 32 32">
                   <circle
-                    cx="16"
-                    cy="16"
-                    r={labeled ? 8 : 5}
+                    cx="16" cy="16"
+                    r={labeled ? 7 : 4.5}
                     className={`${
                       labeled
                         ? "fill-star-selected glow-star"
                         : isActive
                         ? "fill-star-selected"
-                        : `fill-star glow-star-default`
+                        : "fill-star glow-star-default"
                     }`}
                   />
                   {labeled && (
-                    <>
-                      <circle cx="16" cy="16" r="12" fill="none" className="stroke-star-selected" strokeWidth="0.5" opacity="0.3" />
-                    </>
+                    <circle cx="16" cy="16" r="11" fill="none" className="stroke-star-selected" strokeWidth="0.5" opacity="0.3" />
                   )}
                 </svg>
               </motion.div>
@@ -160,7 +158,7 @@ const StarSelectionScreen = ({ onComplete }: StarSelectionScreenProps) => {
                 <motion.span
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-xs text-star-selected whitespace-nowrap font-reflection"
+                  className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[10px] text-star-selected whitespace-nowrap font-reflection"
                 >
                   {labelData.label}
                 </motion.span>
@@ -177,9 +175,9 @@ const StarSelectionScreen = ({ onComplete }: StarSelectionScreenProps) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="mt-6 w-full max-w-sm"
+            className="mt-5 w-full"
           >
-            <p className="text-sm text-accent-lavender mb-2 text-justified font-reflection">
+            <p className="text-xs text-accent-lavender mb-2 text-justified font-reflection">
               {PROMPTS[promptIndex]}
             </p>
             <div className="flex gap-2">
@@ -190,7 +188,7 @@ const StarSelectionScreen = ({ onComplete }: StarSelectionScreenProps) => {
                 onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                 placeholder="Type a word…"
                 maxLength={20}
-                className="flex-1 bg-muted/50 border border-border rounded-lg px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-secondary text-sm"
+                className="flex-1 bg-muted/50 border border-border rounded-lg px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-secondary text-sm"
                 autoFocus
               />
               <motion.button
@@ -198,19 +196,18 @@ const StarSelectionScreen = ({ onComplete }: StarSelectionScreenProps) => {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleSubmit}
                 disabled={!inputValue.trim()}
-                className="bg-gradient-primary px-5 py-2.5 rounded-lg text-primary-foreground text-sm font-semibold disabled:opacity-40"
+                className="bg-gradient-primary px-4 py-2 rounded-lg text-primary-foreground text-sm font-semibold disabled:opacity-40"
               >
                 Add
               </motion.button>
             </div>
 
-            {/* Suggestion chips */}
-            <div className="flex flex-wrap gap-2 mt-3">
+            <div className="flex flex-wrap gap-1.5 mt-2">
               {SUGGESTIONS.map((word) => (
                 <button
                   key={word}
                   onClick={() => handleChip(word)}
-                  className="px-3 py-1 rounded-full text-xs bg-muted/60 text-foreground/70 hover:bg-secondary/30 hover:text-foreground transition-colors border border-border/50"
+                  className="px-2.5 py-0.5 rounded-full text-[11px] bg-muted/60 text-foreground/70 hover:bg-secondary/30 hover:text-foreground transition-colors border border-border/50"
                 >
                   {word}
                 </button>
@@ -228,13 +225,13 @@ const StarSelectionScreen = ({ onComplete }: StarSelectionScreenProps) => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => onComplete(labeledStars)}
-          className="mt-8 bg-gradient-primary px-8 py-3 rounded-full text-primary-foreground font-semibold text-base shadow-lg shadow-primary/30"
+          className="mt-6 bg-gradient-primary px-8 py-2.5 rounded-full text-primary-foreground font-semibold text-sm shadow-lg shadow-primary/30"
         >
           View My Constellation
         </motion.button>
       )}
 
-      <p className="mt-4 text-xs text-muted-foreground">
+      <p className="mt-3 text-xs text-muted-foreground">
         {labeledStars.length}/6 stars labeled
       </p>
     </motion.div>
