@@ -104,6 +104,7 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         twinkle: "twinkle 3s ease-in-out infinite",
         sparkle: "sparkle 0.6s ease-out forwards",
+        "sparkle-burst": "sparkle-burst 0.8s ease-in-out forwards",
         "float-up": "float-up 1s ease-out forwards",
       },
     },
