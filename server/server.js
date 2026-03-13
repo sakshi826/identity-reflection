@@ -125,9 +125,12 @@ app.delete('/api/constellations/:id', async (req, res) => {
   }
 });
 
-// Request logging
+// Health check for deployment monitoring
+app.get('/health', (req, res) => res.status(200).send('OK'));
+
+// Request logging (Enhanced)
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} ${req.method} ${req.url}`);
+  console.log(`${new Date().toISOString()} | ${req.method} | ${req.url} | ${req.ip}`);
   next();
 });
 
@@ -135,21 +138,21 @@ app.use((req, res, next) => {
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.resolve(__dirname, '../dist');
   
-  // Serve static assets with long cache
-  app.use('/identity_reflection', express.static(distPath, { maxAge: '1d' }));
+  // Static files should be served from both root and subpath
+  app.use('/identity_reflection', express.static(distPath));
+  app.use(express.static(distPath));
   
-  // Handshake and API are handled above. 
-  // Any other GET request that isn't an API should serve index.html
-  app.get(['/identity_reflection', '/identity_reflection/*', '/', '/*'], (req, res) => {
-    // If it's an API request that got here, it's a 404 for the API
-    if (req.url.startsWith('/api')) {
-      return res.status(404).json({ error: 'API not found' });
+  // The catch-all MUST be the last GET route
+  app.get('*', (req, res) => {
+    // Avoid infinite loops if assets are missing
+    if (req.url.startsWith('/api') || req.url.includes('.')) {
+      return res.status(404).send('Not Found');
     }
     res.sendFile(path.resolve(distPath, 'index.html'));
   });
 }
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server running on port ${port} (Production Mode)`);
   initDb();
 });
