@@ -2,33 +2,28 @@ import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import type { StarData } from "@/pages/Index";
+import { useTranslation } from "react-i18next";
 
 interface StarSelectionScreenProps {
   onComplete: (stars: StarData[]) => void;
   onBack: () => void;
 }
 
-const PROMPTS = [
-  "What part of you shines here?",
-  "Add a word that represents you.",
-  "What strength lives in this star?",
-  "Name something that makes you you.",
-  "What quality lights up your sky?",
-  "What part of your story belongs here?",
-  "What strength has carried you forward?",
-  "What word describes a piece of your identity?",
-  "What part of yourself are you proud of?",
-  "What inner light does this star hold?",
-];
-
-const SUGGESTIONS = [
-  "courage", "creative", "soft", "queer", "survivor",
-  "resilient", "friend", "kind", "dreamer", "curious",
-];
-
-const FIELD_SIZE = 300;
-
 const StarSelectionScreen = ({ onComplete, onBack }: StarSelectionScreenProps) => {
+  const { t } = useTranslation();
+
+  const PROMPTS = useMemo(() => [
+    t("prompt_1"), t("prompt_2"), t("prompt_3"), t("prompt_4"), t("prompt_5"),
+    t("prompt_6"), t("prompt_7"), t("prompt_8"), t("prompt_9"), t("prompt_10"),
+  ], [t]);
+
+  const SUGGESTIONS = useMemo(() => [
+    t("suggest_1"), t("suggest_2"), t("suggest_3"), t("suggest_4"), t("suggest_5"),
+    t("suggest_6"), t("suggest_7"), t("suggest_8"), t("suggest_9"), t("suggest_10"),
+  ], [t]);
+
+  const FIELD_SIZE = 300;
+
   const starPositions = useMemo(() => {
     const positions: { id: number; x: number; y: number }[] = [];
     const count = 10;
@@ -56,7 +51,7 @@ const StarSelectionScreen = ({ onComplete, onBack }: StarSelectionScreenProps) =
     setActiveStar(id);
     setInputValue("");
     setPromptIndex(Math.floor(Math.random() * PROMPTS.length));
-  }, [labeledStars]);
+  }, [labeledStars, PROMPTS.length]);
 
   const handleSubmit = useCallback(() => {
     if (!inputValue.trim() || activeStar === null) return;
@@ -93,14 +88,14 @@ const StarSelectionScreen = ({ onComplete, onBack }: StarSelectionScreenProps) =
           <ArrowLeft size={20} />
         </motion.button>
         <p className="flex-1 text-center font-reflection text-sm text-foreground/80 text-justified pr-9">
-          Tap stars to add parts of who you are.
+          {t("selection_instruction")}
         </p>
       </div>
 
       {/* Instruction box */}
       <div className="w-full mb-4 px-3 py-2.5 rounded-xl bg-card/50 border border-border/40">
         <p className="text-xs text-accent-lavender font-reflection text-justified leading-relaxed">
-          Choose a star and name a strength, identity, or quality that shines in you.
+          {t("selection_box_instruction")}
         </p>
       </div>
 
@@ -193,7 +188,7 @@ const StarSelectionScreen = ({ onComplete, onBack }: StarSelectionScreenProps) =
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                placeholder="Type a word…"
+                placeholder={t("placeholder_word")}
                 maxLength={20}
                 className="flex-1 bg-muted/50 border border-border rounded-lg px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-secondary text-sm"
                 autoFocus
@@ -205,7 +200,7 @@ const StarSelectionScreen = ({ onComplete, onBack }: StarSelectionScreenProps) =
                 disabled={!inputValue.trim()}
                 className="bg-gradient-primary px-4 py-2 rounded-lg text-primary-foreground text-sm font-semibold disabled:opacity-40"
               >
-                Add
+                {t("add_button")}
               </motion.button>
             </div>
 
@@ -234,12 +229,12 @@ const StarSelectionScreen = ({ onComplete, onBack }: StarSelectionScreenProps) =
           onClick={() => onComplete(labeledStars)}
           className="mt-6 bg-gradient-primary px-8 py-2.5 rounded-full text-primary-foreground font-semibold text-sm shadow-lg shadow-primary/30"
         >
-          View My Constellation
+          {t("view_constellation")}
         </motion.button>
       )}
 
       <p className="mt-3 text-xs text-muted-foreground">
-        {labeledStars.length}/6 stars labeled
+        {labeledStars.length}/6 {t("stars_labeled")}
       </p>
     </motion.div>
   );
