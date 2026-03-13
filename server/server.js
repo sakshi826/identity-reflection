@@ -127,7 +127,7 @@ app.delete('/api/constellations/:id', async (req, res) => {
 
 // Request logging
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
+  console.log(`${new Date().toISOString()} ${req.method} ${req.url}`);
   next();
 });
 
@@ -135,12 +135,16 @@ app.use((req, res, next) => {
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.resolve(__dirname, '../dist');
   
-  // Serve static files
-  app.use('/identity_reflection', express.static(distPath));
-  app.use('/', express.static(distPath)); // Fallback if prefix is stripped
+  // Serve static assets with long cache
+  app.use('/identity_reflection', express.static(distPath, { maxAge: '1d' }));
   
-  // Catch-all for React Router
-  app.get(['/identity_reflection', '/identity_reflection/*', '/'], (req, res) => {
+  // Handshake and API are handled above. 
+  // Any other GET request that isn't an API should serve index.html
+  app.get(['/identity_reflection', '/identity_reflection/*', '/', '/*'], (req, res) => {
+    // If it's an API request that got here, it's a 404 for the API
+    if (req.url.startsWith('/api')) {
+      return res.status(404).json({ error: 'API not found' });
+    }
     res.sendFile(path.resolve(distPath, 'index.html'));
   });
 }

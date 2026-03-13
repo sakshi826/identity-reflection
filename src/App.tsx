@@ -37,7 +37,7 @@ const App = () => {
       }
 
       if (!token) {
-        window.location.href = "/token";
+        window.location.href = "/identity_reflection/token";
         return;
       }
 
@@ -59,11 +59,11 @@ const App = () => {
           
           setIsAuthResolved(true);
         } else {
-          window.location.href = "/token";
+          window.location.href = "/identity_reflection/token";
         }
       } catch (error) {
         console.error("Auth handshake failed:", error);
-        window.location.href = "/token";
+        window.location.href = "/identity_reflection/token";
       }
     };
 

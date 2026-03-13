@@ -25,4 +25,4 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64
-          tags: bunker.mantracare.com/lovable/identity_reflection:6.0
+          tags: bunker.mantracare.com/lovable/identity_reflection:7.0
