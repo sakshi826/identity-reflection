@@ -17,8 +17,8 @@ jobs:
       - uses: docker/login-action@v3
         with:
           registry: bunker.mantracare.com
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
+          username: sakshi
+          password: Sak@2134
 
       - uses: docker/build-push-action@v5
         with:
