@@ -26,6 +26,6 @@ ENV DB_PROJECT_ID=$DB_PROJECT_ID
 ENV DB_API_KEY=$DB_API_KEY
 ENV NODE_ENV=production
 
-EXPOSE 3001
+EXPOSE 80
 
 CMD ["node", "server/server.js"]
