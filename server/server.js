@@ -125,11 +125,23 @@ app.delete('/api/constellations/:id', async (req, res) => {
   }
 });
 
+// Request logging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
+
 // Serve frontend in production
 if (process.env.NODE_ENV === 'production') {
-  app.use('/identity_reflection', express.static(path.resolve(__dirname, '../dist')));
-  app.get('/identity_reflection/*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../dist/index.html'));
+  const distPath = path.resolve(__dirname, '../dist');
+  
+  // Serve static files
+  app.use('/identity_reflection', express.static(distPath));
+  app.use('/', express.static(distPath)); // Fallback if prefix is stripped
+  
+  // Catch-all for React Router
+  app.get(['/identity_reflection', '/identity_reflection/*', '/'], (req, res) => {
+    res.sendFile(path.resolve(distPath, 'index.html'));
   });
 }
 
