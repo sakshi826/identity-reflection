@@ -9,18 +9,23 @@ COPY . .
 
 RUN npm run build
 
-FROM nginx:alpine
+FROM node:20-alpine
 
-WORKDIR /usr/share/nginx/html
+WORKDIR /app
 
-# Create the subdirectory to match the base path
-RUN mkdir -p /usr/share/nginx/html/identity_reflection
+COPY package*.json ./
+RUN npm ci --only=production
 
-COPY --from=builder /app/dist /usr/share/nginx/html/identity_reflection
+COPY server ./server
+COPY database ./database
+COPY --from=builder /app/dist ./dist
 
-RUN rm /etc/nginx/conf.d/default.conf
-COPY vite-nginx.conf /etc/nginx/conf.d/nginx.conf
+# Phase 2 — Docker Environment Variables
+ENV DATABASE_URL=$DATABASE_URL
+ENV DB_PROJECT_ID=$DB_PROJECT_ID
+ENV DB_API_KEY=$DB_API_KEY
+ENV NODE_ENV=production
 
-EXPOSE 80
+EXPOSE 3001
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", "server/server.js"]

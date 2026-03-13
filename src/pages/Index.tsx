@@ -14,27 +14,36 @@ export interface StarData {
   label: string;
 }
 
-const STORAGE_KEY = "identity-constellations";
 
-const loadConstellations = (): SavedConstellation[] => {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch { return []; }
-};
-
-const saveConstellations = (data: SavedConstellation[]) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-};
 
 const Index = () => {
   const [screen, setScreen] = useState<"welcome" | "selection" | "reflection" | "history">("welcome");
   const [stars, setStars] = useState<StarData[]>([]);
-  const [savedConstellations, setSavedConstellations] = useState<SavedConstellation[]>(loadConstellations);
+  const [savedConstellations, setSavedConstellations] = useState<SavedConstellation[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const userId = sessionStorage.getItem("user_id");
+
+  const fetchConstellations = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/constellations", {
+        headers: { "x-user-id": userId || "" }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setSavedConstellations(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId]);
 
   useEffect(() => {
-    saveConstellations(savedConstellations);
-  }, [savedConstellations]);
+    fetchConstellations();
+  }, [fetchConstellations]);
 
   const handleStart = useCallback(() => setScreen("selection"), []);
   const handleHistory = useCallback(() => setScreen("history"), []);
@@ -44,19 +53,44 @@ const Index = () => {
     setScreen("reflection");
   }, []);
 
-  const handleSave = useCallback(() => {
-    const newConstellation: SavedConstellation = {
+  const handleSave = useCallback(async () => {
+    const newConstellation = {
       id: crypto.randomUUID(),
       stars,
-      createdAt: new Date().toISOString(),
     };
-    setSavedConstellations((prev) => [newConstellation, ...prev]);
-    setScreen("welcome");
-  }, [stars]);
+    
+    try {
+      const response = await fetch("/api/constellations", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "x-user-id": userId || ""
+        },
+        body: JSON.stringify(newConstellation),
+      });
 
-  const handleDelete = useCallback((id: string) => {
-    setSavedConstellations((prev) => prev.filter((c) => c.id !== id));
-  }, []);
+      if (response.ok) {
+        await fetchConstellations();
+        setScreen("welcome");
+      }
+    } catch (error) {
+      console.error("Failed to save:", error);
+    }
+  }, [stars, userId, fetchConstellations]);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(`/api/constellations/${id}`, {
+        method: "DELETE",
+        headers: { "x-user-id": userId || "" }
+      });
+      if (response.ok) {
+        fetchConstellations();
+      }
+    } catch (error) {
+      console.error("Failed to delete:", error);
+    }
+  }, [userId, fetchConstellations]);
 
   const handleViewSaved = useCallback((c: SavedConstellation) => {
     setStars(c.stars);
